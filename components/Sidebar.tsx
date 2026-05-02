@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/types';
 import { getInitials, formatRole } from '@/lib/utils';
@@ -22,8 +23,14 @@ const NAV_ITEMS = [
 export default function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const supabase = createClient();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -93,18 +100,37 @@ export default function Sidebar({ profile }: SidebarProps) {
                 <span className="sidebar-user-role">{formatRole(profile.role)}</span>
               </div>
             </div>
-            <button
-              className="btn btn-ghost btn-sm sidebar-logout"
-              onClick={handleLogout}
-              title="Sign out"
-            >
-              🚪
-            </button>
+            
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button
+                className="btn btn-ghost btn-sm sidebar-action"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                title="Toggle Theme"
+              >
+                {mounted ? (theme === 'dark' ? '☀️' : '🌙') : '⏳'}
+              </button>
+              
+              <button
+                className="btn btn-ghost btn-sm sidebar-action"
+                onClick={handleLogout}
+                title="Sign out"
+              >
+                🚪
+              </button>
+            </div>
           </div>
         </div>
       </aside>
 
       <style jsx>{`
+        .sidebar-action {
+          padding: var(--space-1);
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         .mobile-menu-btn {
           display: none;
           position: fixed;
